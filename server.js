@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 // var expect = require('chai').expect;
 var cors = require('cors');
 const helmet = require('helmet');
+const mongo = require('mongodb').MongoClient;
 
 
 var apiRoutes = require('./routes/api.js');
@@ -55,43 +56,58 @@ app.route('/')
     res.sendFile(process.cwd() + '/views/index.html');
   });
 
-//For FCC testing purposes
-fccTestingRoutes(app);
 
-//Routing for API 
-apiRoutes(app);
+mongo.connect(process.env.DB, (err, client) => {
 
-//Sample Front-end
+  let db = client.db(process.env.DB_NAME);
+
+  if (err) {
+    console.log('Database error: ' + err);
+  } else {
+    console.log('Successful database connection');
+
+    // create unique index for boards name
+    db.collection(process.env.DB_BOARDS)
+      .createIndex({"name":1},{unique:true});
 
 
-//404 Not Found Middleware
-app.use(function (req, res, next) {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
-});
+    //For FCC testing purposes
+    fccTestingRoutes(app, db);
 
-// error handling middleware
-app.use((err, req, res) => {
-  if (process.env.NODE_ENV === 'dev') {
-    console.log(err.stack);
-    console.log(`Server error: ${err.message}`);
-  }
-});
-//Start our server and tests!
-app.listen(process.env.PORT || 3000, function () {
-  console.log("Listening on port " + process.env.PORT);
-  if (process.env.NODE_ENV === 'test') {
-    console.log('Running Tests...');
-    setTimeout(function () {
-      try {
-        runner.run();
-      } catch (e) {
-        var error = e;
-        console.log('Tests are not valid:');
-        console.log(error);
+    //Routing for API 
+    apiRoutes(app, db);
+
+    //404 Not Found Middleware
+    app.use(function (req, res, next) {
+      res.status(404)
+        .type('text')
+        .send('Not Found');
+    });
+
+    // error handling middleware
+    app.use((err, req, res) => {
+      if (process.env.NODE_ENV === 'dev') {
+        console.log(err.stack);
+        console.log(`Server error: ${err.message}`);
       }
-    }, 1500);
+    });
+    //Start our server and tests!
+    app.listen(process.env.PORT || 3000, function () {
+      console.log("Listening on port " + process.env.PORT);
+      if (process.env.NODE_ENV === 'test') {
+        console.log('Running Tests...');
+        setTimeout(function () {
+          try {
+            runner.run();
+          } catch (e) {
+            var error = e;
+            console.log('Tests are not valid:');
+            console.log(error);
+          }
+        }, 1500);
+      }
+    });
+
   }
 });
 
