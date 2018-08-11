@@ -9,9 +9,13 @@ Project Anon Message Board - Tanzim's Fork
 
 ## Lessons Learned/Comments
 
+- Limitations of subdocument arrays ($limt, $slice $project etc.)
+- MongoDB Array Operations
+  - <https://stackoverflow.com/questions/24113979/how-to-add-a-sub-document-to-sub-document-array-in-mongodb>
 - MongoDB Aggregations
   - <https://docs.mongodb.com/manual/aggregation/>
   - <https://stackoverflow.com/questions/13449874/how-to-sort-array-inside-collection-record-in-mongodb>
 - Is it better to create related collections, or embed mutiple layers in documents? Research further.
   - <https://stackoverflow.com/questions/5373198/mongodb-relationships-embed-or-reference>
   - <https://coderwall.com/p/px3c7g/mongodb-schema-design-embedded-vs-references>
+
