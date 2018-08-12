@@ -9,7 +9,12 @@ Project Anon Message Board - Tanzim's Fork
 
 ## Lessons Learned/Comments
 
-- Limitations of subdocument arrays ($limt, $slice $project etc.)
+- Using [object modules](./controllers/ThreadController.js) in [routes](./routes/api.js)
+- Limitations of subdocument arrays and objects ($limt, $slice $project etc.)
+  - TLDR: Don't use nesting beyond one level, use Mongoose, or use JS functions on doc array
+  - <https://pythonolyk.wordpress.com/2016/01/17/mongodb-update-nested-array-using-positional-operator/>
+- MongoDB Nested Array Operations
+  - <https://docs.mongodb.com/manual/reference/operator/update/positional-all/#position-nested-arrays>
 - MongoDB Array Operations
   - <https://stackoverflow.com/questions/24113979/how-to-add-a-sub-document-to-sub-document-array-in-mongodb>
 - MongoDB Aggregations
@@ -18,4 +23,3 @@ Project Anon Message Board - Tanzim's Fork
 - Is it better to create related collections, or embed mutiple layers in documents? Research further.
   - <https://stackoverflow.com/questions/5373198/mongodb-relationships-embed-or-reference>
   - <https://coderwall.com/p/px3c7g/mongodb-schema-design-embedded-vs-references>
-
