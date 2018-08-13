@@ -12,7 +12,6 @@ module.exports = function (app, db) {
   const threadController = new ThreadController(db);
   const replyController = new ReplyController(db);
 
-  // create board
   app.route('/api/boards/:boardname')
     .post(threadController.createBoard);
 
@@ -21,10 +20,12 @@ module.exports = function (app, db) {
     .get(threadController.getTheads)
     .post(threadController.createThread)
     .put(threadController.flagThread);
+    
   app.route('/api/replies/:board')
     .get(replyController.getOneThread)
     .post(replyController.createReply)
-    .put(replyController.flagReply);
+    .put(replyController.flagReply)
+    .delete(replyController.markDeleted);
 
 
 };

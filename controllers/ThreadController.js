@@ -17,9 +17,8 @@ function controller(db) {
           upsert: false
         }, function (err, doc) {
           if (err) return next(err);
-          // if (!doc.value) return next(new Error('Thread not inserted!'));
           if (doc.result.nModified !== 1) return next(new Error('Thread not flagged!'));
-          return res.json(doc);
+          return res.send('success');
         });
   };
 
@@ -51,6 +50,7 @@ function controller(db) {
       created_on: new Date(),
       bumped_on: new Date(),
       replies: [],
+      replycount: 0,
     };
 
     db.collection(process.env.DB_BOARDS)
@@ -59,11 +59,9 @@ function controller(db) {
         upsert: false
       }, function (err, doc) {
         if (err) return next(err);
-        // if (!doc.value) return next(new Error('Thread not inserted!'));
         if (doc.result.nModified !== 1) return next(new Error('Thread not inserted!'));
-        return res.json(doc);
+        return res.redirect(`/b/${req.params.board}/`);
       });
-    // res.send("OK");
   };
 
   this.deleteThread = (req, res, next) => {
@@ -84,10 +82,8 @@ function controller(db) {
           if (err) return next(err);
           // console.log(doc.result);
           if (doc.result.nModified !== 1) return next(new Error('Incorrect password!'));
-          return res.json(doc);
+          return res.send('success');
         });
-
-    // return res.json(req.query);
   };
 
   this.getTheads = (req, res, next) => {
@@ -102,9 +98,13 @@ function controller(db) {
       { $limit: 10 },
       {
         $project: {
+          // 'threads.reples.delete_password': 1,
           threads: {
             '_id': 1,
-            'replies': { $slice: ["$threads.replies.text", 3] },
+            'replycount': 1,
+            'replies': { 
+              $slice: ["$threads.replies", 3],
+            },
             'text': 1,
             'created_on': 1,
             'bumped_on': 1,
@@ -112,6 +112,13 @@ function controller(db) {
         }
       },
     ]).toArray((err, doc) => {
+      // remove sensetive fields
+      doc.forEach(thread => {
+         thread.threads.replies.forEach(reply => {
+          reply.reported = undefined;
+          reply.delete_password = undefined;
+         });
+      });
       if (err) return next(err);
       return res.json(doc);
     });

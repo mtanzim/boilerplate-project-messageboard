@@ -87,9 +87,12 @@ mongo.connect(process.env.DB, (err, client) => {
     // error handling middleware
     app.use((err, req, res) => {
       if (process.env.NODE_ENV === 'dev') {
-        console.log(err.stack);
+        // console.log(err.stack);
         console.log(`Server error: ${err.message}`);
       }
+      res.status(500)
+        .type('text')
+        .send(err.message);
     });
     //Start our server and tests!
     app.listen(process.env.PORT || 3000, function () {
