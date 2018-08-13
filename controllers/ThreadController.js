@@ -6,18 +6,21 @@ function controller(db) {
 
   this.flagThread = (req, res, next) => {
 
-    if (testString(req.query.threadid)) return next(new Error('Please fill in values!'));
+    console.log(req.body);
+
+    if (testString(req.body.report_id)) return next(new Error('Please fill in values!'));
 
     db.collection(process.env.DB_BOARDS)
       .update(
-        { name: req.params.board, 'threads._id': ObjectId(req.query.threadid) },
+        { name: req.params.board, 'threads._id': ObjectId(req.body.report_id) },
         { $set: { 'threads.$.reported': true } },
         {
           returnOriginal: false,
           upsert: false
         }, function (err, doc) {
           if (err) return next(err);
-          if (doc.result.nModified !== 1) return next(new Error('Thread not flagged!'));
+          // if (doc.result.nModified !== 1) return next(new Error('Thread not flagged!'));
+          if (doc.result.nModified !== 1) return res.send('Thread not flagged!');
           return res.send('success');
         });
   };
@@ -66,14 +69,14 @@ function controller(db) {
 
   this.deleteThread = (req, res, next) => {
 
-    if (testString(req.query.threadid)) return next(new Error('Incorrect password!'));
-    if (testString(req.query.delete_password)) return next(new Error('Incorrect password!'));
+    if (testString(req.body.threadid)) return next(new Error('Incorrect password!'));
+    if (testString(req.body.delete_password)) return next(new Error('Incorrect password!'));
     db.collection(process.env.DB_BOARDS)
       .update({ name: req.params.board }, {
         $pull: {
           'threads': {
-            '_id': ObjectId(req.query.threadid),
-            'delete_password': req.query.delete_password
+            '_id': ObjectId(req.body.threadid),
+            'delete_password': req.body.delete_password
           }
         }
       }, {
@@ -81,7 +84,8 @@ function controller(db) {
         }, function (err, doc) {
           if (err) return next(err);
           // console.log(doc.result);
-          if (doc.result.nModified !== 1) return next(new Error('Incorrect password!'));
+          // if (doc.result.nModified !== 1) return next(new Error('Incorrect password!'));
+          if (doc.result.nModified !== 1) return res.send('Incorrect password!');
           return res.send('success');
         });
   };

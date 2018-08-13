@@ -10,9 +10,9 @@ function controller(db) {
       // console.log(`Coming here with isDel=${isDel}`);
 
 
-      if (testString(req.query.threadid)) return next(new Error('Please fill in values!'));
-      if (testString(req.query.replyid)) return next(new Error('Please fill in values!'));
-      if (isDel && testString(req.query.delete_password)) return next(new Error('Please fill in values!'));
+      if (testString(req.body.threadid)) return next(new Error('Please fill in values!'));
+      if (testString(req.body.replyid)) return next(new Error('Please fill in values!'));
+      if (isDel && testString(req.body.delete_password)) return next(new Error('Please fill in values!'));
 
       let errMsg = "";
       if (isDel) errMsg = "Incorrect password";
@@ -21,16 +21,16 @@ function controller(db) {
       let newBoard = {};
 
       db.collection(process.env.DB_BOARDS)
-        .find({ name: req.params.board, 'threads._id': ObjectId(req.query.threadid) })
+        .find({ name: req.params.board, 'threads._id': ObjectId(req.body.threadid) })
         .toArray((err, boards) => {
           if (err) return next(err);
           let isSuccess = false;
           boards.forEach((board, i) => {
             board.threads.forEach((thread, j) => {
               thread.replies.forEach((reply, k) => {
-                if (String(thread._id) === String(req.query.threadid) && String(reply._id) === String(req.query.replyid)) {
+                if (String(thread._id) === String(req.body.threadid) && String(reply._id) === String(req.body.replyid)) {
                   if (isDel) {
-                    if (req.query.delete_password === reply.delete_password) {
+                    if (req.body.delete_password === reply.delete_password) {
                       reply.text = 'deleted';
                       newBoard = { ...board };
                       isSuccess = true;
@@ -49,7 +49,8 @@ function controller(db) {
             db.collection(process.env.DB_BOARDS).save(newBoard);
             return res.send('Success');
           } else {
-            return next(new Error(errMsg));
+            // return next(new Error(errMsg));
+            return res.send(errMsg);
           }
 
 
@@ -89,12 +90,12 @@ function controller(db) {
 
   this.createReply = (req, res, next) => {
 
-    console.log(req.body);
-    console.log(req.query);
+    // console.log(req.body);
+    // console.log(req.query);
 
     if (testString(req.body.text)) return next(new Error('Please fill in values!'));
     if (testString(req.body.delete_password)) return next(new Error('Please fill in values!'));
-    if (testString(req.query.threadid)) return next(new Error('Please fill in values!'));
+    if (testString(req.body.threadid)) return next(new Error('Please fill in values!'));
 
 
     let curDate = new Date();
@@ -109,7 +110,7 @@ function controller(db) {
 
     db.collection(process.env.DB_BOARDS)
       .update(
-        { 'threads._id': ObjectId(req.query.threadid) },
+        { 'threads._id': ObjectId(req.body.threadid) },
         {
           $push: { 'threads.$.replies': { $each: [newReply], $position: 0 } },
           $set: { 'threads.$.bumped_on': curDate },
@@ -122,7 +123,8 @@ function controller(db) {
           if (err) return next(err);
           if (doc.result.nModified !== 1) return next(new Error('Reply not inserted!'));
           // return res.json(doc);
-          return res.send('success');
+          // return res.send('success');
+          return res.redirect(`/b/${req.params.board}/`);
         });
 
 
