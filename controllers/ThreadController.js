@@ -1,14 +1,23 @@
 const ObjectId = require('mongodb').ObjectId;
 const testString = require('./testString');
 
+const msgObj = require('./threadControllerMsg');
+
 
 function controller(db) {
 
+
+  const sucessMsg = msgObj.sucessMsg;
+  const invalidPassMsg = msgObj.invalidPassMsg;
+  const notFlaggedMsg = msgObj.notFlaggedMsg;
+  const missingFieldsMsg = msgObj.missingFieldsMsg;
+  const insertErrMsg = msgObj.insertErrMsg;
+
   this.flagThread = (req, res, next) => {
 
-    console.log(req.body);
+    // console.log(req.body);
 
-    if (testString(req.body.report_id)) return next(new Error('Please fill in values!'));
+    if (testString(req.body.report_id)) return next(new Error(missingFieldsMsg));
 
     db.collection(process.env.DB_BOARDS)
       .update(
@@ -20,8 +29,8 @@ function controller(db) {
         }, function (err, doc) {
           if (err) return next(err);
           // if (doc.result.nModified !== 1) return next(new Error('Thread not flagged!'));
-          if (doc.result.nModified !== 1) return res.send('Thread not flagged!');
-          return res.send('success');
+          if (doc.result.nModified !== 1) return res.status(200).send(notFlaggedMsg);
+          return res.send(sucessMsg);
         });
   };
 
@@ -35,15 +44,15 @@ function controller(db) {
         updated_on: new Date(),
       }, (err, doc) => {
         if (err) return next(err);
-        if (!doc.result.ok || doc.result.n !== 1 || !doc.ops[0]) return next(new Error('Document insert error'));
+        if (!doc.result.ok || doc.result.n !== 1 || !doc.ops[0]) return next(new Error(insertErrMsg));
         return res.json(doc.ops[0]);
       });
   };
 
   this.createThread = (req, res, next) => {
 
-    if (testString(req.body.text)) return next(new Error('Please fill in values!'));
-    if (testString(req.body.delete_password)) return next(new Error('Please fill in values!'));
+    if (testString(req.body.text)) return next(new Error(missingFieldsMsg));
+    if (testString(req.body.delete_password)) return next(new Error(missingFieldsMsg));
 
     let newThread = {
       _id: new ObjectId(),
@@ -62,15 +71,15 @@ function controller(db) {
         upsert: false
       }, function (err, doc) {
         if (err) return next(err);
-        if (doc.result.nModified !== 1) return next(new Error('Thread not inserted!'));
+        if (doc.result.nModified !== 1) return next(new Error(insertErrMsg));
         return res.redirect(`/b/${req.params.board}/`);
       });
   };
 
   this.deleteThread = (req, res, next) => {
 
-    if (testString(req.body.threadid)) return next(new Error('Incorrect password!'));
-    if (testString(req.body.delete_password)) return next(new Error('Incorrect password!'));
+    if (testString(req.body.threadid)) return next(new Error(missingFieldsMsg));
+    if (testString(req.body.delete_password)) return next(new Error(missingFieldsMsg));
     db.collection(process.env.DB_BOARDS)
       .update({ name: req.params.board }, {
         $pull: {
@@ -85,8 +94,8 @@ function controller(db) {
           if (err) return next(err);
           // console.log(doc.result);
           // if (doc.result.nModified !== 1) return next(new Error('Incorrect password!'));
-          if (doc.result.nModified !== 1) return res.send('Incorrect password!');
-          return res.send('success');
+          if (doc.result.nModified !== 1) return res.send(invalidPassMsg);
+          return res.send(sucessMsg);
         });
   };
 

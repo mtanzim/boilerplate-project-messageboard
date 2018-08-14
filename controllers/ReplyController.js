@@ -3,20 +3,23 @@ const testString = require('./testString');
 
 function controller(db) {
 
+  const sucessMsg = 'success';
+  const invalidPassMsg = 'incorrect password';
+  const notFlaggedMsg = 'error flagging';
+  const missingFieldsMsg = 'please fill in values';
+  const insertErrMsg = 'document insert error';
+
   function modReply(isDel) {
-    // console.log(`Confoguring with with isDel=${isDel}`);
+
     return function (req, res, next) {
 
-      // console.log(`Coming here with isDel=${isDel}`);
-
-
-      if (testString(req.body.threadid)) return next(new Error('Please fill in values!'));
-      if (testString(req.body.replyid)) return next(new Error('Please fill in values!'));
-      if (isDel && testString(req.body.delete_password)) return next(new Error('Please fill in values!'));
+      if (testString(req.body.threadid)) return next(new Error(missingFieldsMsg));
+      if (testString(req.body.replyid)) return next(new Error(missingFieldsMsg));
+      if (isDel && testString(req.body.delete_password)) return next(new Error(missingFieldsMsg));
 
       let errMsg = "";
-      if (isDel) errMsg = "Incorrect password";
-      else errMsg = "Reply not flagged";
+      if (isDel) errMsg = invalidPassMsg;
+      else errMsg = notFlaggedMsg;
 
       let newBoard = {};
 
@@ -47,7 +50,7 @@ function controller(db) {
 
           if (isSuccess) {
             db.collection(process.env.DB_BOARDS).save(newBoard);
-            return res.send('Success');
+            return res.send(sucessMsg);
           } else {
             // return next(new Error(errMsg));
             return res.send(errMsg);
@@ -93,9 +96,9 @@ function controller(db) {
     // console.log(req.body);
     // console.log(req.query);
 
-    if (testString(req.body.text)) return next(new Error('Please fill in values!'));
-    if (testString(req.body.delete_password)) return next(new Error('Please fill in values!'));
-    if (testString(req.body.threadid)) return next(new Error('Please fill in values!'));
+    if (testString(req.body.text)) return next(new Error(missingFieldsMsg));
+    if (testString(req.body.delete_password)) return next(new Error(missingFieldsMsg));
+    if (testString(req.body.threadid)) return next(new Error(missingFieldsMsg));
 
 
     let curDate = new Date();
@@ -121,9 +124,7 @@ function controller(db) {
           upsert: false
         }, function (err, doc) {
           if (err) return next(err);
-          if (doc.result.nModified !== 1) return next(new Error('Reply not inserted!'));
-          // return res.json(doc);
-          // return res.send('success');
+          if (doc.result.nModified !== 1) return next(new Error(insertErrMsg));
           return res.redirect(`/b/${req.params.board}/`);
         });
 
