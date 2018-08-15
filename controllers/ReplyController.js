@@ -66,6 +66,8 @@ function controller(db) {
   this.flagReply = modReply(false);
 
   this.getOneThread = (req, res, next) => {
+    if (testString(req.query.threadid)) return next(new Error(missingFieldsMsg));
+
     db.collection(process.env.DB_BOARDS).aggregate([
       { $unwind: '$threads' },
       { $match: { 'threads._id': ObjectId(req.query.threadid) } },
@@ -81,6 +83,7 @@ function controller(db) {
             'text': 1,
             'created_on': 1,
             'bumped_on': 1,
+            'replycount': 1, 
           },
         }
       },

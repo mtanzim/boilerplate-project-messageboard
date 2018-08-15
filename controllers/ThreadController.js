@@ -78,8 +78,13 @@ function controller(db) {
 
   this.deleteThread = (req, res, next) => {
 
+    // console.log(req.body);
+
     if (testString(req.body.threadid)) return next(new Error(missingFieldsMsg));
     if (testString(req.body.delete_password)) return next(new Error(missingFieldsMsg));
+
+
+
     db.collection(process.env.DB_BOARDS)
       .update({ name: req.params.board }, {
         $pull: {
