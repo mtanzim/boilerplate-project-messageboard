@@ -34,9 +34,9 @@ const replyTextKey = 'text';
 
 const threadLowerKeys = ["_id", "text", "created_on", "bumped_on", "replycount", "replies"];
 
-var globalThreadId=undefined;
-var globalReplyThreadId=undefined;
-var globalReplyId=undefined;
+var globalThreadId = undefined;
+var globalReplyThreadId = undefined;
+var globalReplyId = undefined;
 
 var numReplies = 5;
 
@@ -58,7 +58,7 @@ const createReply = function () {
 };
 
 const createThread = function () {
-  return new Promise( (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     chai.request(server)
       .post(`/api/threads/${boardName}`)
       .type('form')
@@ -71,7 +71,7 @@ const createThread = function () {
         // done();
         resolve('OK');
       });
-    });
+  });
 }
 
 const listThreads = function () {
@@ -90,12 +90,12 @@ const listThreads = function () {
           assert.property(res.body[0][threadKey], elem);
         });
         assert.isArray(res.body[0][threadKey][replyKey]);
-        res.body.forEach ( thread => {
+        res.body.forEach(thread => {
           // assert.isAtMost(res.body[0][threadKey][replyKey].length, 3);
           // console.log(thread);
           assert.isAtMost(thread[threadKey][replyKey].length, 3);
         });
-        
+
         resolve(threadId);
         // done();
       });
@@ -115,7 +115,7 @@ const listOneThread = function (docId, count, isDeleted = false) {
           assert.property(res.body[0], elem);
         });
         // console.log(res.body[0]);
-        
+
         threadLowerKeys.forEach(elem => {
           assert.property(res.body[0][threadKey], elem);
         });
@@ -160,22 +160,22 @@ suite('Functional Tests', function () {
       });
 
       test('create thread', function (done) {
-        createThread().then( res => {
+        createThread().then(res => {
           // workaround for chai
           assert.equal(true, true);
           done();
         });
-        
+
       });
 
     });
 
     suite('GET', function () {
       test('List threads', function (done) {
-        listThreads().then( res => {
+        listThreads().then(res => {
           assert.equal(true, true);
           // console.log(res);
-          globalThreadId=res;
+          globalThreadId = res;
           done();
         });
       });
@@ -257,7 +257,7 @@ suite('Functional Tests', function () {
 
     suite('POST and GET', function () {
 
-      
+
 
       test('create thread specifically for replies', function (done) {
         createThread().then(res => {
@@ -280,9 +280,9 @@ suite('Functional Tests', function () {
         let iArr = [];
         for (i = 0; i < numReplies; i++) iArr.push(i);
 
-        Promise.all(iArr.map( i => {
+        Promise.all(iArr.map(i => {
           return createReply();
-        })).then ( res => {
+        })).then(res => {
           assert.equal(true, true);
           done();
         });
@@ -300,7 +300,7 @@ suite('Functional Tests', function () {
       test(`Ensure single thread list all ${numReplies} replies, get replyID`, function (done) {
         listOneThread(globalReplyThreadId, numReplies).then(res => {
           assert.equal(true, true);
-          globalReplyId=res;
+          globalReplyId = res;
           // console.log(globalReplyId);
           done();
         });
