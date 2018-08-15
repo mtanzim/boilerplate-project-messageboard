@@ -29,6 +29,8 @@ const threadKey = 'threads';
 const threadUpperKeys = [idKey, threadKey];
 const replyKey = 'replies';
 const replyCountKey = 'replycount';
+const reportedReplyKey = 'repoted';
+const replyTextKey = 'text';
 
 const threadLowerKeys = ["_id", "text", "created_on", "bumped_on", "replycount", "replies"];
 
@@ -36,8 +38,7 @@ var globalThreadId=undefined;
 var globalReplyThreadId=undefined;
 var globalReplyId=undefined;
 
-
-const resSuccessMsg = 'success';
+var numReplies = 5;
 
 const createReply = function () {
   return new Promise((resolve, reject) => {
@@ -101,7 +102,7 @@ const listThreads = function () {
   });
 };
 
-const listOneThread = function (docId, count) {
+const listOneThread = function (docId, count, isDeleted = false) {
   return new Promise((resolve, reject) => {
     chai.request(server)
       .get(`/api/replies/${boardName}?threadid=${docId}`)
@@ -128,6 +129,11 @@ const listOneThread = function (docId, count) {
 
         //allocate latest reply as the replyID to use
         // console.log(res.body);
+        // assert.equal(res.body[0][threadKey][replyKey][0][reportedReplyKey], isFlagged);
+
+        if (isDeleted) {
+          assert.equal(res.body[0][threadKey][replyKey][0][replyTextKey], 'deleted');
+        };
         let replyId = res.body[0][threadKey][replyKey][0][idKey];
         resolve(replyId);
         // done();
@@ -251,7 +257,7 @@ suite('Functional Tests', function () {
 
     suite('POST and GET', function () {
 
-      let numReplies = 5;
+      
 
       test('create thread specifically for replies', function (done) {
         createThread().then(res => {
@@ -322,6 +328,30 @@ suite('Functional Tests', function () {
     });
 
     suite('DELETE', function () {
+      test('delete reply', function (done) {
+        chai.request(server)
+          .delete(`/api/replies/${boardName}`)
+          .type('form')
+          .send({
+            'threadid': globalReplyThreadId,
+            'replyid': globalReplyId,
+            'delete_password': replydDelPass,
+          })
+          .end(function (err, res) {
+            assert.equal(res.status, 200);
+            assert.equal(res.text, threadMsgObj.sucessMsg);
+            done();
+          });
+      });
+
+      test('check reply was deleted', function (done) {
+        listOneThread(globalReplyThreadId, numReplies, true).then(res => {
+          assert.equal(true, true);
+          // globalReplyId = res;
+          // console.log(globalReplyId);
+          done();
+        });
+      });
 
     });
 
